@@ -62,7 +62,6 @@ class _BrowserHomePageState extends State<BrowserHomePage> {
   void initState() {
     super.initState();
     _addNewTab();
-    _loadClickPoints();
   }
 
   Future<String> _generateTabId() async {
@@ -75,8 +74,8 @@ class _BrowserHomePageState extends State<BrowserHomePage> {
     final controller = WebViewController();
     controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     await _restoreCookies(tabId, controller);
-    // controller.loadRequest(Uri.parse('https://universe.flyff.com/play'));
-    controller.loadRequest(Uri.parse('https://baidu.com'));
+    controller.loadRequest(Uri.parse('https://universe.flyff.com/play'));
+    // controller.loadRequest(Uri.parse('https://baidu.com'));
     setState(() {
       tabs.add(BrowserTab(title: '窗口$tabCount', controller: controller, tabId: tabId));
       currentIndex = tabs.length - 1;
