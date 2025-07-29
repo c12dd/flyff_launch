@@ -38,6 +38,9 @@ dependencies:
   flutter_inappwebview: ^6.0.0
   shared_preferences: ^2.2.3
   dartx: ^1.2.0
+  riverpod: ^2.6.1
+  hooks_riverpod: ^2.6.1
+  flutter_hooks: ^0.20.5
 
 dev_dependencies:
   flutter_test:
