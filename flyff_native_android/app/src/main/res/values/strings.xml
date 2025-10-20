@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Flyff Native Android</string>
+    <string name="add_new_tab">添加新标签页</string>
+    <string name="auto_click">自动点击</string>
+    <string name="reload_tab">刷新标签页</string>
+    <string name="close_tab">关闭标签页</string>
+    <string name="accessibility_service_label">Flyff自动点击服务</string>
+    <string name="accessibility_service_description">用于实现自动点击功能的无障碍服务</string>
+    <string name="new_tab">新标签页</string>
+</resources>

@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.c12dd.flyff_native.app-mergeDebugResources-47:/layout/activity_main.xml",
+        "source": "com.c12dd.flyff_native.app-main-50:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/ningxiaoming/.gradle/daemon/8.2/com.c12dd.flyff_native.app-mergeDebugResources-47:/layout/activity_main.xml",
+        "source": "/Users/ningxiaoming/.gradle/daemon/8.2/com.c12dd.flyff_native.app-main-50:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/ningxiaoming/.gradle/daemon/8.2/com.c12dd.flyff_native.app-mergeDebugResources-47:/layout/fragment_webview.xml",
+        "source": "/Users/ningxiaoming/.gradle/daemon/8.2/com.c12dd.flyff_native.app-main-50:/layout/fragment_webview.xml"
+    }
+]

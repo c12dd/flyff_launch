@@ -20,8 +20,9 @@ class RecordingOverlayWidget extends HookConsumerWidget {
         children: [
           // 透明覆盖层，用于捕获点击
           Positioned.fill(
-            child: GestureDetector(
-              onTapDown: (details) {
+            child: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: (details) {
                 clickNotifier.addClickPoint(details.localPosition);
               },
               child: Container(

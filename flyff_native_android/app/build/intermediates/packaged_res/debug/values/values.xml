@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <color name="accent_color">#FF03DAC5</color>
+    <color name="black">#FF000000</color>
+    <color name="fab_auto_click_color">#FF4CAF50</color>
+    <color name="primary_color">#FF673AB7</color>
+    <color name="primary_dark_color">#FF512DA8</color>
+    <color name="progress_bar_color">#FF2196F3</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="accessibility_service_description">用于实现自动点击功能的无障碍服务</string>
+    <string name="accessibility_service_label">Flyff自动点击服务</string>
+    <string name="add_new_tab">添加新标签页</string>
+    <string name="app_name">Flyff Native Android</string>
+    <string name="auto_click">自动点击</string>
+    <string name="close_tab">关闭标签页</string>
+    <string name="new_tab">新标签页</string>
+    <string name="reload_tab">刷新标签页</string>
+    <style name="Base.Theme.FlyffNativeAndroid" parent="Theme.Material3.DayNight">
+        
+        <item name="colorPrimary">@color/primary_color</item>
+        <item name="colorPrimaryVariant">@color/primary_dark_color</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_color</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:statusBarColor">@color/primary_dark_color</item>
+        <item name="android:navigationBarColor">@color/primary_color</item>
+        
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" ns1:targetApi="p">shortEdges</item>
+    </style>
+    <style name="Theme.FlyffNativeAndroid" parent="Base.Theme.FlyffNativeAndroid"/>
+</resources>

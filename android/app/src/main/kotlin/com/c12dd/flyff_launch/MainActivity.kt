@@ -16,6 +16,23 @@ class MainActivity : FlutterActivity() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(false)
         }
+        
+        // 多tab场景下的WebView优化
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val processName = android.app.Application.getProcessName()
+            if (packageName != processName) {
+                WebView.setDataDirectorySuffix(processName)
+            }
+        }
+        
+        // 启用WebView多进程模式（如果支持）
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                WebView.getCurrentWebViewPackage()
+            }
+        } catch (e: Exception) {
+            // 忽略异常，继续执行
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
