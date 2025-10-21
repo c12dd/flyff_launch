@@ -22,7 +22,7 @@ class BrowserController {
     // 内存优化
     minimumFontSize: 8,
     defaultFontSize: 16,
-    // 网络优化
+    // 网络优化·
     useShouldOverrideUrlLoading: true,
     useOnLoadResource: false, // 减少回调开销
     // 渲染优化

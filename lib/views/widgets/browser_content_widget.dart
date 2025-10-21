@@ -79,20 +79,14 @@ class _WebViewContainerState extends State<_WebViewContainer>
           }
         }
       },
+      shouldOverrideUrlLoading: (controller, navigationAction) async {
+        return NavigationActionPolicy.ALLOW;
+      },
       onLoadStart: (controller, url) {
         debugPrint('开始加载: $url');
       },
-      onLoadStop: (controller, url) async {
+      onLoadStop: (controller, url) {
         debugPrint('加载完成: $url');
-        await controller.evaluateJavascript(source: """
-           var meta = document.querySelector('meta[name=viewport]');
-           if (!meta) {
-              meta = document.createElement('meta');
-              meta.name = 'viewport';
-              document.head.appendChild(meta);
-           }
-           meta.content = 'width=device-width, initial-scale=0.8, maximum-scale=0.8, minimum-scale=0.8, user-scalable=no';
-  """);
       },
       onProgressChanged: (controller, progress) {
         debugPrint('加载进度: $progress%');
