@@ -92,13 +92,13 @@ class BrowserTabsNotifier extends StateNotifier<BrowserTabsState> {
     // 可以在这里添加关闭标签页的清理逻辑，如有必要
   }
 
-  // 切换标签页
-  void switchTab(int index) {
-    if (index >= 0 && index < state.tabs.length && index != state.currentIndex) {
-      // 只在索引不同时更新状态，避免不必要的重建
-      state = state.copyWith(currentIndex: index);
-    }
-  }
+  // // 切换标签页
+  // void switchTab(int index) {
+  //   if (index >= 0 && index < state.tabs.length && index != state.currentIndex) {
+  //     // 只在索引不同时更新状态，避免不必要的重建
+  //     state = state.copyWith(currentIndex: index);
+  //   }
+  // }
 
   // 更新标签页标题
   void updateTabTitle(int index, String title) {

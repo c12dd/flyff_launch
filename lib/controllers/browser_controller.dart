@@ -49,8 +49,8 @@ class BrowserController {
     return BrowserTab(
       title: '窗口$tabCount',
       tabId: tabId,
-      // initialUrl: initialUrl ?? Uri.parse('https://universe.flyff.com/play'),
-      initialUrl: initialUrl ?? Uri.parse('https://www.baidu.com'),
+      initialUrl: initialUrl ?? Uri.parse('https://universe.flyff.com/play'),
+      // initialUrl: initialUrl ?? Uri.parse('https://www.baidu.com'),
       options: defaultSettings,
     );
   }

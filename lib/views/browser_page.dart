@@ -1,15 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flyff_launch/providers/browser_provider.dart';
-import 'package:flyff_launch/providers/click_provider.dart';
 import 'package:flyff_launch/views/widgets/browser_content_widget.dart';
-import 'package:flyff_launch/views/widgets/recording_overlay_widget.dart';
-import 'package:flyff_launch/views/widgets/floating_action_button_widget.dart';
-import 'package:flyff_launch/controllers/browser_controller.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 创建一个缩放比例的Provider
@@ -32,33 +27,9 @@ class BrowserPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final accessibilityController = ref.read(accessibilityControllerProvider);
-    // final accessibilityNotifier = ref.read(accessibilityEnabledProvider.notifier);
     final browserState = ref.watch(browserTabsProvider);
     final browserNotifier = ref.read(browserTabsProvider.notifier);
     final browserController = ref.read(browserControllerProvider);
-
-    // 检查无障碍服务状态并定期更新
-    // useEffect(() {
-    //   // 立即检查一次
-    //   Future.microtask(() async {
-    //     final isEnabled = await accessibilityController.isAccessibilityServiceEnabled();
-    //     accessibilityNotifier.state = isEnabled;
-    //   });
-    //
-    //   // 设置定时器定期检查无障碍服务状态
-    //   final timer = Timer.periodic(const Duration(seconds: 2), (_) async {
-    //     final isEnabled = await accessibilityController.isAccessibilityServiceEnabled();
-    //     if (accessibilityNotifier.state != isEnabled) {
-    //       accessibilityNotifier.state = isEnabled;
-    //     }
-    //   });
-    //
-    //   // 清理函数
-    //   return () {
-    //     timer.cancel();
-    //   };
-    // }, const []);
 
 
     // 在构建时加载保存的缩放比例
@@ -75,8 +46,29 @@ class BrowserPage extends HookConsumerWidget {
     return DefaultTabController(
       length: browserState.tabs.length,
       initialIndex: browserState.currentIndex.clamp(0, browserState.tabs.length - 1),
+      animationDuration: Duration.zero,
       child: Scaffold(
         backgroundColor: Colors.white,
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FloatingActionButton(
+              onPressed: () async {
+                await _sendMsg(ref, "1");
+              },
+              child: const Icon(Icons.looks_one),
+            ),
+            const SizedBox(width: 8),
+            FloatingActionButton(
+              onPressed: () async {
+                await _sendMsg(ref, "2");
+              },
+              child: const Icon(Icons.looks_two),
+            ),
+          ],
+        ),
         appBar: AppBar(
           backgroundColor: Colors.grey[100],
           elevation: 1,
@@ -91,9 +83,7 @@ class BrowserPage extends HookConsumerWidget {
                   labelColor: Colors.deepPurple,
                   unselectedLabelColor: Colors.black87,
                   indicatorWeight: 3,
-                  onTap: (index) {
-                    browserNotifier.switchTab(index);
-                  },
+                  tabAlignment: TabAlignment.start,
                   tabs: browserState.tabs.asMap().entries.map((entry) {
                     final index = entry.key;
                     final tab = entry.value;
@@ -149,22 +139,16 @@ class BrowserPage extends HookConsumerWidget {
             ],
           ),
         ),
-        body: Stack(
-          children: [
-            TabBarView(
-              physics: const NeverScrollableScrollPhysics(), // 禁用左右滑动切换tab页
-              children: browserState.tabs.asMap().entries.map((entry) {
-                final index = entry.key;
-                final tab = entry.value;
-                return BrowserContentWidget(
-                  key: ValueKey(tab.tabId),
-                  tabIndex: index,
-                );
-              }).toList(),
-            ),
-            // const RecordingOverlayWidget(),
-            // const FloatingActionButtonWidget(),
-          ],
+        body: TabBarView(
+          physics: const NeverScrollableScrollPhysics(), // 禁用左右滑动切换tab页
+          children: browserState.tabs.asMap().entries.map((entry) {
+            final index = entry.key;
+            final tab = entry.value;
+            return BrowserContentWidget(
+              key: ValueKey(tab.tabId),
+              tabIndex: index,
+            );
+          }).toList(),
         ),
       ),
     );
@@ -242,4 +226,89 @@ class BrowserPage extends HookConsumerWidget {
       }
     }
   }
+
+  Future<void> _sendMsg(WidgetRef ref,String key) async{
+    final browserState = ref.read(browserTabsProvider);
+
+    for (var i = 0; i < browserState.tabs.length; i++) {
+      final controller = browserState.tabs[i].controller;
+      if (controller != null) {
+        final entry = keyboardMap[key];
+        if (entry == null) {
+          print("⚠️ 不支持的按键: $key");
+          return;
+        }
+        final code = entry['code'];
+        final keyCode = entry['keyCode'];
+
+        await controller.evaluateJavascript(source: """
+    (function() {
+      
+      input = document.querySelector('Canvas')
+      var down = new KeyboardEvent('keydown', { key: '$key', code: '$code', keyCode: $keyCode, bubbles: true });
+      var press = new KeyboardEvent('keypress', { key: '$key', code: '$code', keyCode: $keyCode, bubbles: true });
+      var up = new KeyboardEvent('keyup', { key: '$key', code: '$code', keyCode: $keyCode, bubbles: true });
+      input.dispatchEvent(down);
+      input.dispatchEvent(press);
+      input.dispatchEvent(up);
+    })();
+  """);
+      }
+    }
+  }
 }
+
+
+
+const Map<String, Map<String, dynamic>> keyboardMap = {
+  // 字母键
+  'a': {'code': 'KeyA', 'keyCode': 65},
+  'b': {'code': 'KeyB', 'keyCode': 66},
+  'c': {'code': 'KeyC', 'keyCode': 67},
+  'd': {'code': 'KeyD', 'keyCode': 68},
+  'e': {'code': 'KeyE', 'keyCode': 69},
+  'f': {'code': 'KeyF', 'keyCode': 70},
+  'g': {'code': 'KeyG', 'keyCode': 71},
+  'h': {'code': 'KeyH', 'keyCode': 72},
+  'i': {'code': 'KeyI', 'keyCode': 73},
+  'j': {'code': 'KeyJ', 'keyCode': 74},
+  'k': {'code': 'KeyK', 'keyCode': 75},
+  'l': {'code': 'KeyL', 'keyCode': 76},
+  'm': {'code': 'KeyM', 'keyCode': 77},
+  'n': {'code': 'KeyN', 'keyCode': 78},
+  'o': {'code': 'KeyO', 'keyCode': 79},
+  'p': {'code': 'KeyP', 'keyCode': 80},
+  'q': {'code': 'KeyQ', 'keyCode': 81},
+  'r': {'code': 'KeyR', 'keyCode': 82},
+  's': {'code': 'KeyS', 'keyCode': 83},
+  't': {'code': 'KeyT', 'keyCode': 84},
+  'u': {'code': 'KeyU', 'keyCode': 85},
+  'v': {'code': 'KeyV', 'keyCode': 86},
+  'w': {'code': 'KeyW', 'keyCode': 87},
+  'x': {'code': 'KeyX', 'keyCode': 88},
+  'y': {'code': 'KeyY', 'keyCode': 89},
+  'z': {'code': 'KeyZ', 'keyCode': 90},
+
+  // 数字键
+  '0': {'code': 'Digit0', 'keyCode': 48},
+  '1': {'code': 'Digit1', 'keyCode': 49},
+  '2': {'code': 'Digit2', 'keyCode': 50},
+  '3': {'code': 'Digit3', 'keyCode': 51},
+  '4': {'code': 'Digit4', 'keyCode': 52},
+  '5': {'code': 'Digit5', 'keyCode': 53},
+  '6': {'code': 'Digit6', 'keyCode': 54},
+  '7': {'code': 'Digit7', 'keyCode': 55},
+  '8': {'code': 'Digit8', 'keyCode': 56},
+  '9': {'code': 'Digit9', 'keyCode': 57},
+
+  // 方向键与控制键
+  'Enter': {'code': 'Enter', 'keyCode': 13},
+  'Backspace': {'code': 'Backspace', 'keyCode': 8},
+  'Space': {'code': 'Space', 'keyCode': 32},
+  'ArrowUp': {'code': 'ArrowUp', 'keyCode': 38},
+  'ArrowDown': {'code': 'ArrowDown', 'keyCode': 40},
+  'ArrowLeft': {'code': 'ArrowLeft', 'keyCode': 37},
+  'ArrowRight': {'code': 'ArrowRight', 'keyCode': 39},
+  'Tab': {'code': 'Tab', 'keyCode': 9},
+  'Escape': {'code': 'Escape', 'keyCode': 27},
+};
