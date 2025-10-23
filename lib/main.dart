@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flyff_launch/views/browser_page.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   // 设置状态栏透明
   SystemChrome.setSystemUIOverlayStyle(
@@ -14,9 +14,9 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  
-  // // 强制横屏
-  await SystemChrome.setPreferredOrientations([
+
+  // 强制横屏
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);

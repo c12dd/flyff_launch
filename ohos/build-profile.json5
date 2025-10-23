@@ -1,0 +1,41 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/ningxiaoming/.ohos/config/default_ohos_dzxr0CWtH9jWD3fBhLP5D2EEZCYmlefnvjIeNMIobnU=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001ADA024A6E2EAC6F5252D0D2ECD5C6D2E4554C8387229399EEB83ECC6754EADAFCDB40AF3D634A",
+          "profile": "/Users/ningxiaoming/.ohos/config/default_ohos_dzxr0CWtH9jWD3fBhLP5D2EEZCYmlefnvjIeNMIobnU=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/ningxiaoming/.ohos/config/default_ohos_dzxr0CWtH9jWD3fBhLP5D2EEZCYmlefnvjIeNMIobnU=.p12",
+          "storePassword": "0000001A84403A4979ACFD29E46EFDBEB6349D1D73379BC12E8E3034FE0F2F3D6BC25C71A4FC4387E331"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.0(12)",
+        "runtimeOS": "HarmonyOS"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

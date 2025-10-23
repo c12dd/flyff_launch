@@ -83,7 +83,7 @@ class BrowserPage extends HookConsumerWidget {
                   labelColor: Colors.deepPurple,
                   unselectedLabelColor: Colors.black87,
                   indicatorWeight: 3,
-                  tabAlignment: TabAlignment.start,
+                  // tabAlignment: TabAlignment.start,
                   tabs: browserState.tabs.asMap().entries.map((entry) {
                     final index = entry.key;
                     final tab = entry.value;
