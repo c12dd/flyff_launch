@@ -66,9 +66,6 @@ class BrowserTabsNotifier extends StateNotifier<BrowserTabsState> {
   void closeTab(int index) {
     if (state.tabs.length <= 1) return;
 
-    // 保存要关闭的标签页ID，以便后续处理
-    final closedTabId = state.tabs[index].tabId;
-    
     // 创建新的标签页列表，移除指定索引的标签页
     final newTabs = [...state.tabs];
     newTabs.removeAt(index);

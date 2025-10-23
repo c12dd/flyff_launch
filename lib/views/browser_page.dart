@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flyff_launch/providers/browser_provider.dart';
 import 'package:flyff_launch/views/widgets/browser_content_widget.dart';
+import 'package:flyff_launch/views/widgets/draggable_floating_buttons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,23 +50,27 @@ class BrowserPage extends HookConsumerWidget {
       animationDuration: Duration.zero,
       child: Scaffold(
         backgroundColor: Colors.white,
-        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
+        body: Stack(
           children: [
-            FloatingActionButton(
-              onPressed: () async {
+            TabBarView(
+              physics: const NeverScrollableScrollPhysics(), // 禁用左右滑动切换tab页
+              children: browserState.tabs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final tab = entry.value;
+                return BrowserContentWidget(
+                  key: ValueKey(tab.tabId),
+                  tabIndex: index,
+                );
+              }).toList(),
+            ),
+            // 可拖拽的浮动按钮
+            DraggableFloatingButtons(
+              onButton1Pressed: () async {
                 await _sendMsg(ref, "1");
               },
-              child: const Icon(Icons.looks_one),
-            ),
-            const SizedBox(width: 8),
-            FloatingActionButton(
-              onPressed: () async {
+              onButton2Pressed: () async {
                 await _sendMsg(ref, "2");
               },
-              child: const Icon(Icons.looks_two),
             ),
           ],
         ),
@@ -138,17 +143,6 @@ class BrowserPage extends HookConsumerWidget {
               ),
             ],
           ),
-        ),
-        body: TabBarView(
-          physics: const NeverScrollableScrollPhysics(), // 禁用左右滑动切换tab页
-          children: browserState.tabs.asMap().entries.map((entry) {
-            final index = entry.key;
-            final tab = entry.value;
-            return BrowserContentWidget(
-              key: ValueKey(tab.tabId),
-              tabIndex: index,
-            );
-          }).toList(),
         ),
       ),
     );
