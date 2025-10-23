@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flyff_launch/providers/browser_provider.dart';
+import 'package:flyff_launch/providers/button_config_provider.dart';
 import 'package:flyff_launch/views/widgets/browser_content_widget.dart';
 import 'package:flyff_launch/views/widgets/draggable_floating_buttons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -65,11 +66,8 @@ class BrowserPage extends HookConsumerWidget {
             ),
             // 可拖拽的浮动按钮
             DraggableFloatingButtons(
-              onButton1Pressed: () async {
-                await _sendMsg(ref, "1");
-              },
-              onButton2Pressed: () async {
-                await _sendMsg(ref, "2");
+              onButtonPressed: (boundKey) async {
+                await _sendMsg(ref, boundKey);
               },
             ),
           ],
@@ -139,6 +137,12 @@ class BrowserPage extends HookConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.zoom_in),
                 onPressed: () => _showZoomDialog(context, ref),
+                color: Colors.deepPurple,
+              ),
+
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _showButtonConfigDialog(context, ref),
                 color: Colors.deepPurple,
               ),
             ],
@@ -221,6 +225,100 @@ class BrowserPage extends HookConsumerWidget {
     }
   }
 
+  // 显示按钮配置对话框
+  void _showButtonConfigDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final buttonConfigState = ref.watch(buttonConfigProvider);
+          final buttonConfigNotifier = ref.read(buttonConfigProvider.notifier);
+          
+          return Dialog(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.8,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // 标题栏
+                  Row(
+                    children: [
+                      const Text(
+                        '悬浮按钮配置',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  // 说明文字和添加按钮
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('配置悬浮按钮的按键绑定'),
+                      ),
+                      const SizedBox(width: 8),
+                      FloatingActionButton.small(
+                        onPressed: () {
+                          buttonConfigNotifier.addButton();
+                        },
+                        backgroundColor: Colors.green,
+                        child: const Icon(Icons.add, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // 按钮配置列表 - 使用Flow布局
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 4.0,
+                        runSpacing: 4.0,
+                        children: buttonConfigState.buttons.map((button) => 
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.35,
+                            child: ButtonConfigTile(
+                              button: button,
+                              onKeyChanged: (newKey) {
+                                buttonConfigNotifier.updateButtonConfig(button.key, newKey);
+                              },
+                              onDisplayNameChanged: (newName) {
+                                buttonConfigNotifier.updateButtonDisplayName(button.key, newName);
+                              },
+                              onDelete: () {
+                                buttonConfigNotifier.removeButton(button.key);
+                              },
+                            ),
+                          ),
+                        ).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // 底部按钮
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('完成'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _sendMsg(WidgetRef ref,String key) async{
     final browserState = ref.read(browserTabsProvider);
 
@@ -252,7 +350,169 @@ class BrowserPage extends HookConsumerWidget {
   }
 }
 
+// 按钮配置项组件
+class ButtonConfigTile extends StatefulWidget {
+  final ButtonConfig button;
+  final Function(String) onKeyChanged;
+  final Function(String) onDisplayNameChanged;
+  final VoidCallback onDelete;
 
+  const ButtonConfigTile({
+    super.key,
+    required this.button,
+    required this.onKeyChanged,
+    required this.onDisplayNameChanged,
+    required this.onDelete,
+  });
+
+  @override
+  State<ButtonConfigTile> createState() => _ButtonConfigTileState();
+}
+
+class _ButtonConfigTileState extends State<ButtonConfigTile> {
+  late TextEditingController _keyController;
+  late TextEditingController _nameController;
+  bool _isEditingKey = false;
+  bool _isEditingName = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _keyController = TextEditingController(text: widget.button.boundKey);
+    _nameController = TextEditingController(text: widget.button.displayName);
+  }
+
+  @override
+  void dispose() {
+    _keyController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(2),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 按钮头部信息
+            Row(
+              children: [
+                Icon(widget.button.icon, size: 20),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    widget.button.displayName,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                  onPressed: widget.onDelete,
+                  tooltip: '删除按钮',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // 显示名称编辑
+            Row(
+              children: [
+                Expanded(
+                  child: _isEditingName
+                    ? TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: '名称',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          isDense: true,
+                        ),
+                        style: const TextStyle(fontSize: 11),
+                        onSubmitted: (value) {
+                          widget.onDisplayNameChanged(value);
+                          setState(() {
+                            _isEditingName = false;
+                          });
+                        },
+                      )
+                    : Text(
+                        '名称: ${widget.button.displayName}',
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                ),
+                IconButton(
+                  icon: Icon(_isEditingName ? Icons.check : Icons.edit, size: 14),
+                  onPressed: () {
+                    if (_isEditingName) {
+                      widget.onDisplayNameChanged(_nameController.text);
+                    }
+                    setState(() {
+                      _isEditingName = !_isEditingName;
+                    });
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            // 按键绑定编辑
+            Row(
+              children: [
+                Expanded(
+                  child: _isEditingKey
+                    ? TextField(
+                        controller: _keyController,
+                        decoration: const InputDecoration(
+                          labelText: '按键',
+                          hintText: '输入按键',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          isDense: true,
+                        ),
+                        style: const TextStyle(fontSize: 11),
+                        onSubmitted: (value) {
+                          widget.onKeyChanged(value);
+                          setState(() {
+                            _isEditingKey = false;
+                          });
+                        },
+                      )
+                    : Text(
+                        '按键: ${widget.button.boundKey}',
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                ),
+                IconButton(
+                  icon: Icon(_isEditingKey ? Icons.check : Icons.edit, size: 14),
+                  onPressed: () {
+                    if (_isEditingKey) {
+                      widget.onKeyChanged(_keyController.text);
+                    }
+                    setState(() {
+                      _isEditingKey = !_isEditingKey;
+                    });
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 const Map<String, Map<String, dynamic>> keyboardMap = {
   // 字母键

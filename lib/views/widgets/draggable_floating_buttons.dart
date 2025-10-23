@@ -2,31 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flyff_launch/providers/button_config_provider.dart';
 
 // 按钮位置状态Provider
 final buttonPositionsProvider = StateProvider<Map<String, Offset>>((ref) => {});
 
 class DraggableFloatingButtons extends HookConsumerWidget {
-  final VoidCallback? onButton1Pressed;
-  final VoidCallback? onButton2Pressed;
-  final IconData button1Icon;
-  final IconData button2Icon;
-  final String button1Key;
-  final String button2Key;
+  final Function(String)? onButtonPressed;
 
   const DraggableFloatingButtons({
     super.key,
-    this.onButton1Pressed,
-    this.onButton2Pressed,
-    this.button1Icon = Icons.looks_one,
-    this.button2Icon = Icons.looks_two,
-    this.button1Key = 'button1',
-    this.button2Key = 'button2',
+    this.onButtonPressed,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buttonPositions = ref.watch(buttonPositionsProvider);
+    final buttonConfigState = ref.watch(buttonConfigProvider);
     final screenSize = MediaQuery.of(context).size;
     final safeArea = MediaQuery.of(context).padding;
     
@@ -41,45 +33,32 @@ class DraggableFloatingButtons extends HookConsumerWidget {
     final availableHeight = screenSize.height - safeArea.top - safeArea.bottom - appBarHeight;
     final availableWidth = screenSize.width - safeArea.left - safeArea.right;
     
-    // 获取按钮位置，如果没有保存的位置则使用默认位置
-    final button1Position = buttonPositions[button1Key] ?? 
-        Offset(availableWidth - 60, availableHeight - 100);
-    final button2Position = buttonPositions[button2Key] ?? 
-        Offset(availableWidth - 10, availableHeight - 100);
-
     return Stack(
-      children: [
-        // 按钮1
-        DraggableButton(
-          key: ValueKey(button1Key),
-          icon: button1Icon,
-          initialPosition: button1Position,
-          onPressed: onButton1Pressed,
+      children: buttonConfigState.buttons.asMap().entries.map((entry) {
+        final index = entry.key;
+        final button = entry.value;
+        
+        // 获取按钮位置，如果没有保存的位置则使用默认位置
+        final defaultX = availableWidth - (60 + index * 60);
+        final defaultY = availableHeight - 100;
+        final buttonPosition = buttonPositions[button.key] ?? 
+            Offset(defaultX, defaultY);
+
+        return DraggableButton(
+          key: ValueKey(button.key),
+          icon: button.icon,
+          initialPosition: buttonPosition,
+          onPressed: () => onButtonPressed?.call(button.boundKey),
           onPositionChanged: (position) => _updateButtonPosition(
             ref, 
-            button1Key, 
+            button.key, 
             position,
             screenSize,
             safeArea,
             appBarHeight,
           ),
-        ),
-        // 按钮2
-        DraggableButton(
-          key: ValueKey(button2Key),
-          icon: button2Icon,
-          initialPosition: button2Position,
-          onPressed: onButton2Pressed,
-          onPositionChanged: (position) => _updateButtonPosition(
-            ref, 
-            button2Key, 
-            position,
-            screenSize,
-            safeArea,
-            appBarHeight,
-          ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
@@ -127,17 +106,15 @@ class DraggableFloatingButtons extends HookConsumerWidget {
   Future<void> _loadButtonPositions(WidgetRef ref) async {
     final prefs = await SharedPreferences.getInstance();
     final positions = <String, Offset>{};
+    final buttonConfigState = ref.read(buttonConfigProvider);
     
-    final button1X = prefs.getDouble('${button1Key}_x');
-    final button1Y = prefs.getDouble('${button1Key}_y');
-    if (button1X != null && button1Y != null) {
-      positions[button1Key] = Offset(button1X, button1Y);
-    }
-    
-    final button2X = prefs.getDouble('${button2Key}_x');
-    final button2Y = prefs.getDouble('${button2Key}_y');
-    if (button2X != null && button2Y != null) {
-      positions[button2Key] = Offset(button2X, button2Y);
+    // 加载所有按钮的位置
+    for (final button in buttonConfigState.buttons) {
+      final buttonX = prefs.getDouble('${button.key}_x');
+      final buttonY = prefs.getDouble('${button.key}_y');
+      if (buttonX != null && buttonY != null) {
+        positions[button.key] = Offset(buttonX, buttonY);
+      }
     }
     
     if (positions.isNotEmpty) {
