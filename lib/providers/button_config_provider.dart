@@ -33,27 +33,84 @@ class ButtonConfig {
 
   // JSON序列化
   Map<String, dynamic> toJson() {
+    // 将IconData转换为字符串名称
+    String iconName = 'add';
+    if (icon == Icons.add) {
+      iconName = 'add';
+    } else if (icon == Icons.remove) {
+      iconName = 'remove';
+    } else if (icon == Icons.edit) {
+      iconName = 'edit';
+    } else if (icon == Icons.save) {
+      iconName = 'save';
+    } else if (icon == Icons.delete) {
+      iconName = 'delete';
+    } else if (icon == Icons.settings) {
+      iconName = 'settings';
+    } else if (icon == Icons.home) {
+      iconName = 'home';
+    } else if (icon == Icons.search) {
+      iconName = 'search';
+    } else if (icon == Icons.favorite) {
+      iconName = 'favorite';
+    } else if (icon == Icons.star) {
+      iconName = 'star';
+    }
+    
     return {
       'key': key,
       'displayName': displayName,
       'boundKey': boundKey,
-      'iconCodePoint': icon.codePoint,
-      'iconFontFamily': icon.fontFamily,
-      'iconFontPackage': icon.fontPackage,
+      'iconName': iconName,
     };
   }
 
   // JSON反序列化
   factory ButtonConfig.fromJson(Map<String, dynamic> json) {
+    // 使用预定义的IconData常量避免tree-shaking问题
+    final iconName = json['iconName'] as String? ?? 'add';
+    IconData iconData;
+    
+    switch (iconName) {
+      case 'add':
+        iconData = Icons.add;
+        break;
+      case 'remove':
+        iconData = Icons.remove;
+        break;
+      case 'edit':
+        iconData = Icons.edit;
+        break;
+      case 'save':
+        iconData = Icons.save;
+        break;
+      case 'delete':
+        iconData = Icons.delete;
+        break;
+      case 'settings':
+        iconData = Icons.settings;
+        break;
+      case 'home':
+        iconData = Icons.home;
+        break;
+      case 'search':
+        iconData = Icons.search;
+        break;
+      case 'favorite':
+        iconData = Icons.favorite;
+        break;
+      case 'star':
+        iconData = Icons.star;
+        break;
+      default:
+        iconData = Icons.add;
+    }
+    
     return ButtonConfig(
       key: json['key'],
       displayName: json['displayName'],
       boundKey: json['boundKey'],
-      icon: IconData(
-        json['iconCodePoint'],
-        fontFamily: json['iconFontFamily'],
-        fontPackage: json['iconFontPackage'],
-      ),
+      icon: iconData,
     );
   }
 }
@@ -62,10 +119,14 @@ class ButtonConfig {
 class ButtonConfigState {
   final List<ButtonConfig> buttons;
   final bool isEditMode;
+  final int controllerCount; // 控制器数量，0表示所有
+  final Map<String, Offset> buttonPositions; // 按钮位置
 
   ButtonConfigState({
     required this.buttons,
     required this.isEditMode,
+    required this.controllerCount,
+    this.buttonPositions = const {},
   });
 
   factory ButtonConfigState.initial() {
@@ -85,16 +146,21 @@ class ButtonConfigState {
         ),
       ],
       isEditMode: false,
+      controllerCount: 0, // 默认所有控制器
     );
   }
 
   ButtonConfigState copyWith({
     List<ButtonConfig>? buttons,
     bool? isEditMode,
+    int? controllerCount,
+    Map<String, Offset>? buttonPositions,
   }) {
     return ButtonConfigState(
       buttons: buttons ?? this.buttons,
       isEditMode: isEditMode ?? this.isEditMode,
+      controllerCount: controllerCount ?? this.controllerCount,
+      buttonPositions: buttonPositions ?? this.buttonPositions,
     );
   }
 }
@@ -102,7 +168,52 @@ class ButtonConfigState {
 // 按钮配置Notifier
 class ButtonConfigNotifier extends StateNotifier<ButtonConfigState> {
   ButtonConfigNotifier() : super(ButtonConfigState.initial()) {
-    _loadButtonConfigs();
+    _initialize();
+  }
+  
+  // 异步初始化
+  Future<void> _initialize() async {
+    await _loadButtonConfigs();
+    await _loadControllerCount();
+    await _loadButtonPositions();
+  }
+  
+  // 加载按钮位置
+  Future<void> _loadButtonPositions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final positions = <String, Offset>{};
+      
+      for (final button in state.buttons) {
+        final buttonX = prefs.getDouble('${button.key}_x');
+        final buttonY = prefs.getDouble('${button.key}_y');
+        if (buttonX != null && buttonY != null) {
+          positions[button.key] = Offset(buttonX, buttonY);
+        }
+      }
+      
+      if (positions.isNotEmpty) {
+        state = state.copyWith(buttonPositions: positions);
+      }
+    } catch (e) {
+      print('Error loading button positions: $e');
+    }
+  }
+  
+  // 保存按钮位置
+  Future<void> saveButtonPosition(String buttonKey, Offset position) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('${buttonKey}_x', position.dx);
+      await prefs.setDouble('${buttonKey}_y', position.dy);
+      
+      // 更新状态
+      final updatedPositions = Map<String, Offset>.from(state.buttonPositions);
+      updatedPositions[buttonKey] = position;
+      state = state.copyWith(buttonPositions: updatedPositions);
+    } catch (e) {
+      print('Error saving button position: $e');
+    }
   }
 
   // 加载按钮配置
@@ -191,6 +302,33 @@ class ButtonConfigNotifier extends StateNotifier<ButtonConfigState> {
 
     state = state.copyWith(buttons: updatedButtons);
     _saveButtonConfigs(); // 自动保存
+  }
+
+  // 更新控制器数量
+  void updateControllerCount(int count) {
+    state = state.copyWith(controllerCount: count);
+    _saveControllerCount(count);
+  }
+
+  // 保存控制器数量
+  Future<void> _saveControllerCount(int count) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('controller_count', count);
+    } catch (e) {
+      print('保存控制器数量失败: $e');
+    }
+  }
+
+  // 加载控制器数量
+  Future<void> _loadControllerCount() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final count = prefs.getInt('controller_count') ?? 0;
+      state = state.copyWith(controllerCount: count);
+    } catch (e) {
+      print('加载控制器数量失败: $e');
+    }
   }
 
   // 获取按钮配置

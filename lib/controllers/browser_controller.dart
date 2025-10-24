@@ -13,8 +13,10 @@ class BrowserController {
     databaseEnabled: true,
     domStorageEnabled: true,
     mediaPlaybackRequiresUserGesture: false,
+    useHybridComposition:  true,
     mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
     useOnRenderProcessGone: true,
+    userAgent: "Mozilla/5.0 (Linux; Android 12; WebViewApp) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Mobile Safari/537.36",
     // 多tab优化设置
     clearCache: false, // 保持缓存以提升切换速度
     clearSessionCache: false,

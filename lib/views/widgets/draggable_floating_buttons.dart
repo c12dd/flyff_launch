@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flyff_launch/providers/button_config_provider.dart';
-
-// 按钮位置状态Provider
-final buttonPositionsProvider = StateProvider<Map<String, Offset>>((ref) => {});
 
 class DraggableFloatingButtons extends HookConsumerWidget {
   final Function(String)? onButtonPressed;
@@ -17,16 +13,9 @@ class DraggableFloatingButtons extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buttonPositions = ref.watch(buttonPositionsProvider);
     final buttonConfigState = ref.watch(buttonConfigProvider);
     final screenSize = MediaQuery.of(context).size;
     final safeArea = MediaQuery.of(context).padding;
-    
-    // 初始化按钮位置
-    useEffect(() {
-      _loadButtonPositions(ref);
-      return null;
-    }, []);
 
     // 计算可用的拖拽区域
     const appBarHeight = 48.0; // AppBar高度
@@ -41,12 +30,12 @@ class DraggableFloatingButtons extends HookConsumerWidget {
         // 获取按钮位置，如果没有保存的位置则使用默认位置
         final defaultX = availableWidth - (60 + index * 60);
         final defaultY = availableHeight - 100;
-        final buttonPosition = buttonPositions[button.key] ?? 
+        final buttonPosition = buttonConfigState.buttonPositions[button.key] ?? 
             Offset(defaultX, defaultY);
 
         return DraggableButton(
           key: ValueKey(button.key),
-          icon: button.icon,
+          displayText: button.boundKey,
           initialPosition: buttonPosition,
           onPressed: () => onButtonPressed?.call(button.boundKey),
           onPositionChanged: (position) => _updateButtonPosition(
@@ -82,56 +71,23 @@ class DraggableFloatingButtons extends HookConsumerWidget {
     
     final clampedPosition = Offset(clampedX, clampedY);
     
-    final currentPositions = ref.read(buttonPositionsProvider);
-    final updatedPositions = Map<String, Offset>.from(currentPositions);
-    updatedPositions[buttonKey] = clampedPosition;
-    ref.read(buttonPositionsProvider.notifier).state = updatedPositions;
-    
-    // 自动保存位置
-    _saveButtonPositions(ref);
+    // 使用ButtonConfigNotifier保存位置
+    final buttonConfigNotifier = ref.read(buttonConfigProvider.notifier);
+    buttonConfigNotifier.saveButtonPosition(buttonKey, clampedPosition);
   }
 
-  // 保存按钮位置到SharedPreferences
-  Future<void> _saveButtonPositions(WidgetRef ref) async {
-    final prefs = await SharedPreferences.getInstance();
-    final positions = ref.read(buttonPositionsProvider);
-    
-    for (final entry in positions.entries) {
-      await prefs.setDouble('${entry.key}_x', entry.value.dx);
-      await prefs.setDouble('${entry.key}_y', entry.value.dy);
-    }
-  }
 
-  // 从SharedPreferences加载按钮位置
-  Future<void> _loadButtonPositions(WidgetRef ref) async {
-    final prefs = await SharedPreferences.getInstance();
-    final positions = <String, Offset>{};
-    final buttonConfigState = ref.read(buttonConfigProvider);
-    
-    // 加载所有按钮的位置
-    for (final button in buttonConfigState.buttons) {
-      final buttonX = prefs.getDouble('${button.key}_x');
-      final buttonY = prefs.getDouble('${button.key}_y');
-      if (buttonX != null && buttonY != null) {
-        positions[button.key] = Offset(buttonX, buttonY);
-      }
-    }
-    
-    if (positions.isNotEmpty) {
-      ref.read(buttonPositionsProvider.notifier).state = positions;
-    }
-  }
 }
 
 class DraggableButton extends HookWidget {
-  final IconData icon;
+  final String displayText;
   final VoidCallback? onPressed;
   final Offset initialPosition;
   final Function(Offset)? onPositionChanged;
 
   const DraggableButton({
     super.key,
-    required this.icon,
+    required this.displayText,
     required this.initialPosition,
     this.onPressed,
     this.onPositionChanged,
@@ -160,7 +116,7 @@ class DraggableButton extends HookWidget {
         },
         onPanEnd: (details) {
           if (isDragging.value) {
-            // 通知位置变化
+            // 通知位置变化并立即保存
             onPositionChanged?.call(position.value);
           }
           isDragging.value = false;
@@ -192,9 +148,15 @@ class DraggableButton extends HookWidget {
               ),
             ],
           ),
-          child: Icon(
-            icon,
-            color: Colors.white,
+          child: Center(
+            child: Text(
+              displayText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
       ),
