@@ -173,9 +173,11 @@ class ButtonConfigNotifier extends StateNotifier<ButtonConfigState> {
   
   // 异步初始化
   Future<void> _initialize() async {
+    debugPrint('🔧 ButtonConfigNotifier: Starting initialization...');
     await _loadButtonConfigs();
     await _loadControllerCount();
     await _loadButtonPositions();
+    debugPrint('🔧 ButtonConfigNotifier: Initialization complete. Buttons: ${state.buttons.length}');
   }
   
   // 加载按钮位置
