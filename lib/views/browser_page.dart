@@ -292,31 +292,29 @@ class BrowserPage extends HookConsumerWidget {
                   // 按钮配置列表 - 使用Flow布局
                   Expanded(
                     child: SingleChildScrollView(
-                      child: Expanded(
-                        child: Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.start,
-                          spacing: 4.0,
-                          runSpacing: 4.0,
-                          children: buttonConfigState.buttons
-                              .map(
-                                (button) => SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.2,
-                                  child: ButtonConfigTile(
-                                    button: button,
-                                    onKeyChanged: (newKey) {
-                                      buttonConfigNotifier.updateButtonConfig(button.key, newKey);
-                                    },
-                                    onDisplayNameChanged: (newName) {
-                                      buttonConfigNotifier.updateButtonDisplayName(button.key, newName);
-                                    },
-                                    onDelete: () {
-                                      buttonConfigNotifier.removeButton(button.key);
-                                    },
-                                  ),
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.start,
+                        spacing: 4.0,
+                        runSpacing: 4.0,
+                        children: buttonConfigState.buttons
+                            .map(
+                              (button) => SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.2,
+                                child: ButtonConfigTile(
+                                  button: button,
+                                  onKeyChanged: (newKey) {
+                                    buttonConfigNotifier.updateButtonConfig(button.key, newKey);
+                                  },
+                                  onDisplayNameChanged: (newName) {
+                                    buttonConfigNotifier.updateButtonDisplayName(button.key, newName);
+                                  },
+                                  onDelete: () {
+                                    buttonConfigNotifier.removeButton(button.key);
+                                  },
                                 ),
-                              )
-                              .toList(),
-                        ),
+                              ),
+                            )
+                            .toList(),
                       ),
                     ),
                   ),

@@ -14,13 +14,18 @@ class BrowserController {
     domStorageEnabled: true,
     mediaPlaybackRequiresUserGesture: false,
     useHybridComposition:  true,
+    safeBrowsingEnabled: false,
     mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+    allowBackgroundAudioPlaying: true,
+    allowContentAccess:  true,
+    cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
+    allowUniversalAccessFromFileURLs:  true,
     useOnRenderProcessGone: true,
     userAgent: "Mozilla/5.0 (Linux; Android 12; WebViewApp) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Mobile Safari/537.36",
     // 多tab优化设置
     clearCache: false, // 保持缓存以提升切换速度
     clearSessionCache: false,
-    incognito: false, // 允许共享缓存
+    incognito: false, // 允许共享缓存,
     // 内存优化
     minimumFontSize: 8,
     defaultFontSize: 16,
