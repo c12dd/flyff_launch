@@ -151,6 +151,12 @@ class DraggableButton extends HookWidget {
     final isDragging = useState(false);
     final dragStartPosition = useState<Offset?>(null);
 
+    // 当外部提供的初始位置发生变化（例如异步加载保存的位置后），同步内部状态
+    useEffect(() {
+      position.value = initialPosition;
+      return null;
+    }, [initialPosition]);
+
     return Positioned(
       left: position.value.dx,
       top: position.value.dy,

@@ -9,7 +9,6 @@ class BrowserController {
     transparentBackground: true,
     // 性能优化设置
     hardwareAcceleration: true,
-    cacheEnabled: true,
     databaseEnabled: true,
     domStorageEnabled: true,
     mediaPlaybackRequiresUserGesture: false,
@@ -18,7 +17,13 @@ class BrowserController {
     mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
     allowBackgroundAudioPlaying: true,
     allowContentAccess:  true,
+    // 优先使用缓存；若资源过期则回落到网络
     cacheMode: CacheMode.LOAD_CACHE_ELSE_NETWORK,
+    // 启用 AppCache/离线存储相关能力（旧站点可能依赖）
+    cacheEnabled: true,
+    appCachePath: '/data/data/app_cache',
+    builtInZoomControls: false,
+    displayZoomControls: false,
     allowUniversalAccessFromFileURLs:  true,
     useOnRenderProcessGone: true,
     userAgent: "Mozilla/5.0 (Linux; Android 12; WebViewApp) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Mobile Safari/537.36",
@@ -32,6 +37,9 @@ class BrowserController {
     // 网络优化·
     useShouldOverrideUrlLoading: true,
     useOnLoadResource: false, // 减少回调开销
+    // cookie/存储
+    thirdPartyCookiesEnabled: true,
+    javaScriptCanOpenWindowsAutomatically: true,
     // 渲染优化
     disableDefaultErrorPage: false,
     supportMultipleWindows: true,
@@ -40,8 +48,6 @@ class BrowserController {
     horizontalScrollBarEnabled: true,
     // 缩放优化
     supportZoom: true,
-    builtInZoomControls: false,
-    displayZoomControls: false,
   );
 
   // 生成唯一的标签页ID
@@ -56,8 +62,8 @@ class BrowserController {
     return BrowserTab(
       title: '窗口$tabCount',
       tabId: tabId,
-      // initialUrl: initialUrl ?? Uri.parse('https://universe.flyff.com/play'),
-      initialUrl: initialUrl ?? Uri.parse('https://www.baidu.com'),
+      initialUrl: initialUrl ?? Uri.parse('https://universe.flyff.com/play'),
+      // initialUrl: initialUrl ?? Uri.parse('https://www.baidu.com'),
       options: defaultSettings,
     );
   }

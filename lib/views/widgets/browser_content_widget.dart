@@ -62,7 +62,8 @@ class _WebViewContainerState extends State<_WebViewContainer>
       key: ValueKey(widget.tab.tabId),
       initialUrlRequest: URLRequest(url: WebUri.uri(widget.tab.initialUrl)),
       initialSettings: widget.tab.options,
-      onWebViewCreated: (controller) {
+      // 允许 SW 缓存跨页面复用；避免每次都像“首次进入”
+      onWebViewCreated: (controller) async {
         _controller = controller;
         final currentIndex = widget.browserNotifier.state.tabs
             .indexWhere((t) => t.tabId == widget.tab.tabId);
